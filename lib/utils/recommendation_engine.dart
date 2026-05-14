@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../models/question.dart';
 import '../models/soul_food_score.dart';
 import '../models/food_recommendation.dart';
@@ -124,6 +126,18 @@ class RecommendationEngine {
 
     // 按匹配度降序排列
     scored.sort((a, b) => b.matchScore.compareTo(a.matchScore));
+
+    // 同分段内随机打乱，保证每次推荐结果有变化
+    final rng = Random();
+    int groupStart = 0;
+    for (int i = 1; i <= scored.length; i++) {
+      if (i == scored.length || scored[i].matchScore != scored[groupStart].matchScore) {
+        final group = scored.sublist(groupStart, i);
+        group.shuffle(rng);
+        scored.setRange(groupStart, i, group);
+        groupStart = i;
+      }
+    }
 
     // 归一化分数到 0-100
     final int maxScore = scored.isNotEmpty ? scored.first.matchScore : 1;
